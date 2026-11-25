@@ -1,0 +1,92 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+ plugins {
+	id 'java'
+    id "com.github.node-gradle.node" version "7.0.2"
+}
+ 
+group = 'ch.xxx'
+version = '0.0.1-SNAPSHOT'
+
+node {
+    version = '24.16.0'
+    npmVersion = '11.13.0' // Gewünschte NPM Version
+    download = true // Lädt Node/NPM automatisch herunter
+    nodeProjectDir = file("${project.projectDir}/src/angular")
+}
+
+tasks.register('npmInstallCustom', NpmTask) {
+    onlyIf { project.hasProperty('withAngular') }
+
+    // Das Plugin weiß durch 'nodeProjectDir' bereits, wo es laufen muss.
+    // Du musst hier nur noch die Argumente übergeben:
+    args = ['install']
+
+    // Stellt sicher, dass Node/NPM vor der Ausführung heruntergeladen werden
+    dependsOn 'nodeSetup', 'npmSetup'
+    dependsOn 'cleanAngular'
+}
+
+tasks.register('cleanAngular') {
+    onlyIf {
+        project.hasProperty('withAngular')
+    }
+    doLast {
+        println('Task cleanAngular')
+        delete('src/angular/node_modules')
+    }
+}
+
+tasks.register('cleanDist') {
+    onlyIf {
+        project.hasProperty('withAngular')
+    }
+    doLast {
+        delete('src/angular/dist')
+    }
+}
+
+tasks.register('createDist') {
+    onlyIf {
+        project.hasProperty('withAngular')
+    }
+    doLast {
+        mkdir('src/angular/dist')
+    }
+}
+
+tasks.register('npmBuild', NpmTask) {
+    onlyIf {
+        project.hasProperty('withAngular')
+    }
+
+    args = ['run', 'build']
+
+    dependsOn 'npmInstall', 'cleanDist', 'createDist'
+}
+
+tasks.register('testAngular', NpmTask) {
+    onlyIf {
+        project.hasProperty('withAngular')
+    }
+    args = ['run', 'test']
+
+    dependsOn 'npmBuild'
+}
+
+tasks.register('buildAngular') {
+    dependsOn npmBuild, testAngular
+}
+
+// Make sure the main build task depends on buildAngular
+build.dependsOn buildAngular

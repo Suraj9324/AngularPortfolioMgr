@@ -1,0 +1,96 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+	   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+import {
+  Component,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+} from "@angular/core";
+import {
+  FormGroup,
+  FormBuilder,
+  AbstractControlOptions,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from "@angular/forms";
+import {
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogContent,
+} from "@angular/material/dialog";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { ImportData, ImportDataType } from "../../../model/import-data";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatButton } from "@angular/material/button";
+import { Inject } from "@angular/core";
+
+enum FormFields {
+  Filename = "filename",
+}
+
+@Component({
+  selector: "app-import-financials",
+  templateUrl: "./import-financials.component.html",
+  styleUrls: ["./import-financials.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CdkScrollable,
+    MatDialogContent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatButton,
+  ],
+})
+export class ImportFinancialsComponent {
+  protected financialsForm: FormGroup;
+  protected FormFields = FormFields;
+  protected filepath = signal("");
+  protected filename = signal("");
+  protected formInvalid = signal(true);
+  protected ImportDataType = ImportDataType;
+
+  private dialogRef = inject(MatDialogRef);
+  private destroyRef = inject(DestroyRef);
+  private fb = inject(FormBuilder);
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ImportData) {
+    this.filepath.set(data.path ?? "");
+    this.financialsForm = this.fb.group({
+      [FormFields.Filename]: [
+        "",
+        [Validators.required, Validators.minLength(5)],
+      ],
+    } as AbstractControlOptions);
+    this.financialsForm.statusChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.formInvalid.set(this.financialsForm.invalid));
+  }
+
+  okClick(): void {
+    this.dialogRef.close({
+      filename: this.financialsForm.controls[FormFields.Filename].value,
+      path: this.filepath(),
+    } as ImportData);
+  }
+
+  cancelClick(): void {
+    this.dialogRef.close();
+  }
+}

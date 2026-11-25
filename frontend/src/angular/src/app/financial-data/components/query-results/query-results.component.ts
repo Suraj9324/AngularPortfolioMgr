@@ -1,0 +1,125 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+	   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+import {
+  Component,
+  ChangeDetectionStrategy,
+  effect,
+  signal,
+  viewChild,
+  input,
+  AfterViewInit,
+} from "@angular/core";
+import { SymbolFinancials } from "../../model/symbol-financials";
+import { FinancialElementExt } from "../../model/financial-element";
+import {
+  MatTableDataSource,
+  MatTable,
+  MatColumnDef,
+  MatHeaderCellDef,
+  MatHeaderCell,
+  MatCellDef,
+  MatCell,
+  MatHeaderRowDef,
+  MatHeaderRow,
+  MatRowDef,
+  MatRow,
+} from "@angular/material/table";
+import { MatSort, MatSortHeader } from "@angular/material/sort";
+import { ResultTreeComponent } from "../result-tree/result-tree.component";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { MatTooltip } from "@angular/material/tooltip";
+
+@Component({
+  selector: "app-query-results",
+  templateUrl: "./query-results.component.html",
+  styleUrls: ["./query-results.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ResultTreeComponent,
+    MatFormField,
+    MatLabel,
+    MatInput,
+    MatTable,
+    MatSort,
+    MatColumnDef,
+    MatHeaderCellDef,
+    MatHeaderCell,
+    MatCellDef,
+    MatCell,
+    MatTooltip,
+    MatSortHeader,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatRowDef,
+    MatRow,
+  ],
+})
+export class QueryResultsComponent implements AfterViewInit {
+  treeSymbolFinancials = signal<SymbolFinancials[]>([]);
+  symbolFinancials = input<SymbolFinancials[]>([]);
+  financialElements = input<FinancialElementExt[]>([]);
+  tableSort = viewChild.required<MatSort>(MatSort);
+  protected displayedColumns: string[] = [
+    "concept",
+    "value",
+    "currency",
+    "year",
+    "quarter",
+    "symbol",
+  ];
+  protected dataSource = new MatTableDataSource<FinancialElementExt>([]);
+
+  constructor() {
+    effect(() => {
+      const sf = this.symbolFinancials();
+      this.dataSource.data = [];
+      this.treeSymbolFinancials.set(sf);
+    });
+
+    effect(() => {
+      const fe = this.financialElements();
+      this.dataSource.data = this.removeFetDublicates(fe);
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.filterPredicate = (
+      data: FinancialElementExt,
+      filter: string,
+    ) => data?.symbol?.trim().toLowerCase().includes(filter);
+    this.dataSource.sort = this.tableSort();
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  private removeFetDublicates(
+    financialElementExts: FinancialElementExt[],
+  ): FinancialElementExt[] {
+    const financialElementExtMap = new Map<string, FinancialElementExt>();
+    financialElementExts.forEach((myElement) => {
+      const key: string =
+        myElement?.concept +
+        myElement?.currency +
+        myElement?.quarter +
+        myElement?.symbol +
+        myElement?.value +
+        myElement?.year;
+      financialElementExtMap.set(key, myElement);
+    });
+    return Array.from(financialElementExtMap.values());
+  }
+}

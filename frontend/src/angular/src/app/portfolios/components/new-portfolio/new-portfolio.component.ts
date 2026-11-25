@@ -1,0 +1,134 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+import { Component, Inject, inject, signal, ChangeDetectionStrategy } from "@angular/core";
+import {
+  FormGroup,
+  Validators,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+} from "@angular/forms";
+import { OverviewComponent } from "../overview/overview.component";
+import {
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogContent,
+} from "@angular/material/dialog";
+import { Portfolio } from "../../../model/portfolio";
+import { PortfolioData } from "../../../model/portfolio-data";
+import { DateTime } from "luxon";
+import { TokenService } from "ngx-simple-charts/base-service";
+import { CdkScrollable } from "@angular/cdk/scrolling";
+import {
+  MatFormField,
+  MatLabel,
+  MatSuffix,
+} from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import {
+  MatDatepickerInput,
+  MatDatepickerToggle,
+  MatDatepicker,
+} from "@angular/material/datepicker";
+import { MatButton } from "@angular/material/button";
+
+enum FormFields {
+  PortfolioName = "portfolioName",
+  CreatedAt = "createdAt",
+}
+
+@Component({
+  selector: "app-new-portfolio",
+  templateUrl: "./new-portfolio.component.html",
+  styleUrls: ["./new-portfolio.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CdkScrollable,
+    MatDialogContent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormField,
+    MatInput,
+    MatLabel,
+    MatDatepickerInput,
+    MatDatepickerToggle,
+    MatSuffix,
+    MatDatepicker,
+    MatButton,
+  ],
+})
+export class NewPortfolioComponent {
+  portfolioForm: FormGroup;
+  formValid = signal(true);
+  FormFields = FormFields;
+  private tokenService = inject(TokenService);
+  private fb = inject(FormBuilder);
+
+  constructor(
+    public dialogRef: MatDialogRef<OverviewComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: PortfolioData,
+  ) {
+    this.portfolioForm = this.fb.group(
+      {
+        [FormFields.PortfolioName]: ["", Validators.required],
+        [FormFields.CreatedAt]: [
+          DateTime.fromISO(this.data.portfolio.createdAt),
+          Validators.required,
+        ],
+      },
+      {
+        validator: this.validate.bind(this),
+      },
+    );
+  }
+
+  onAddClick(): void {
+    const createdAt = this.portfolioForm.get(FormFields.CreatedAt)
+      ?.value as DateTime;
+    const portfolio: Portfolio = {
+      id: -1,
+      createdAt: new Date(createdAt.toMillis()).toISOString(),
+      month1: 0,
+      month6: 0,
+      name: this.portfolioForm.get(FormFields.PortfolioName)?.value,
+      currencyKey: "EUR",
+      symbols: [],
+      portfolioElements: [],
+      userId: this.tokenService.userId as number,
+      year1: 0,
+      year10: 0,
+      year2: 0,
+      year5: 0,
+    };
+    this.dialogRef.close(portfolio);
+  }
+
+  onCancelClick(): void {
+    this.dialogRef.close();
+  }
+
+  validate(formGroup: FormGroup) {
+    if (formGroup.get(FormFields.PortfolioName)?.touched) {
+      const myValue: string = formGroup.get(FormFields.PortfolioName)?.value;
+      if (myValue && myValue.trim().length > 4) {
+        formGroup.get(FormFields.PortfolioName)?.setErrors(null);
+        this.formValid.set(true);
+      } else {
+        formGroup
+          .get(FormFields.PortfolioName)
+          ?.setErrors({ MatchPassword: true });
+        this.formValid.set(false);
+      }
+    }
+  }
+}

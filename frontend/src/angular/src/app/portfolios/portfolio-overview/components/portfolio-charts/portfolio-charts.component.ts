@@ -1,0 +1,87 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+import {
+  Component,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+} from "@angular/core";
+import { Portfolio } from "../../../../model/portfolio";
+import { ActivatedRoute, ParamMap } from "@angular/router";
+import { switchMap, tap, filter } from "rxjs/operators";
+import { PortfolioService } from "../../../../service/portfolio.service";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { NewsItem } from "../../model/news-item";
+import { NewsService } from "../../service/news.service";
+import { MatTabGroup, MatTab, MatTabContent } from "@angular/material/tabs";
+import { PortfolioComparisonComponent } from "../portfolio-comparison/portfolio-comparison.component";
+import { PortfolioSectorsComponent } from "../portfolio-sectors/portfolio-sectors.component";
+import { PortfolioTimechartComponent } from "../portfolio-timechart/portfolio-timechart.component";
+import { PortfolioStatsComponent } from "../portfolio-stats/portfolio-stats.component";
+import { NewsListComponent } from "../news-list/news-list.component";
+import { CompanyReportsComponent } from "../company-reports/company-reports.component";
+
+@Component({
+  selector: "app-portfolio-charts",
+  templateUrl: "./portfolio-charts.component.html",
+  styleUrls: ["./portfolio-charts.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MatTabGroup,
+    MatTab,
+    MatTabContent,
+    PortfolioComparisonComponent,
+    PortfolioSectorsComponent,
+    PortfolioTimechartComponent,
+    PortfolioStatsComponent,
+    NewsListComponent,
+    CompanyReportsComponent,
+  ],
+})
+export class PortfolioChartsComponent {
+  protected cnbcFinanceNews = signal<NewsItem[]>([]);
+  protected seekingAlphaNews = signal<NewsItem[]>([]);
+  selPortfolio = signal<Portfolio>({} as Portfolio);
+  reloadData = signal(false);
+
+  private route = inject(ActivatedRoute);
+  private portfolioService = inject(PortfolioService);
+  private destroyRef = inject(DestroyRef);
+  private newsService = inject(NewsService);
+
+  constructor() {
+    this.newsService
+      .getCnbcFinanceNews()
+      .subscribe((result: NewsItem[]) => this.cnbcFinanceNews.set(result));
+    this.newsService
+      .getSeekingAlphaNews()
+      .subscribe((result: NewsItem[]) => this.seekingAlphaNews.set(result));
+    this.route.paramMap
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter(
+          (params: ParamMap) =>
+            parseInt(params.get("portfolioId") ?? "-1") >= 0,
+        ),
+        tap(() => this.reloadData.set(true)),
+        switchMap((params: ParamMap) =>
+          this.portfolioService.getPortfolioById(
+            parseInt(params.get("portfolioId") ?? "-1"),
+          ),
+        ),
+        tap(() => this.reloadData.set(false)),
+      )
+      .subscribe((myData: Portfolio) => this.selPortfolio.set(myData));
+  }
+}

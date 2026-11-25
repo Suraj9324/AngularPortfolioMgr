@@ -1,0 +1,125 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+plugins {
+	id 'org.springframework.boot' version '4.2.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'java'    
+}
+
+group = 'ch.xxx'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+    set('springModulithVersion', "2.2.0")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    implementation 'org.springframework.boot:spring-boot-starter-restclient'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+	implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.modulith:spring-modulith-events-api'
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
+    implementation 'com.google.guava:guava:33.5.0-jre'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+	implementation 'commons-net:commons-net:3.12.0'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    implementation 'tools.jackson.dataformat:jackson-dataformat-xml'
+	implementation 'tools.jackson.dataformat:jackson-dataformat-csv'
+	implementation 'net.javacrumbs.shedlock:shedlock-spring:7.3.0'
+	implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.3.0'
+	implementation 'com.google.crypto.tink:tink:1.19.0'
+	implementation 'com.rometools:rome:2.1.0'
+	implementation 'org.apache.httpcomponents.client5:httpclient5'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-events-kafka'
+    runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
+    testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-liquibase-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-restclient-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-mail-test'
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	if(project.hasProperty('withAngular')) {
+		implementation 'org.postgresql:postgresql'
+		testImplementation 'com.h2database:h2'
+	} else {
+		runtimeOnly 'com.h2database:h2'
+		testImplementation 'com.h2database:h2'
+	}
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+    }
+}
+
+bootJar {
+   archiveFileName = 'portfoliomgr.jar'
+}
+
+test {
+	useJUnitPlatform()
+}
+
+// Ensure backend tasks wait for frontend
+
+tasks.named('processResources') {
+    dependsOn(':frontend:buildAngular')
+}
+
+tasks.named('classes') {
+    dependsOn(':frontend:buildAngular')
+}
+
+tasks.named('bootJar') {
+    dependsOn(':frontend:buildAngular')
+}
+
+task buildDockerImage {
+	if(project.hasProperty('buildDockerImage')) {	
+		bootBuildImage {
+			imageName = 'angular2guy/angularportfoliomgr:latest'
+			environment = ["BPL_JVM_HEAD_ROOM" : "10","SPRING_PROFILES_ACTIVE" : "prod"]
+			publish = false
+		}
+	}
+}

@@ -1,0 +1,116 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+	   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+.container {
+  //background-color: #FF0000;
+  width: calc(50vw - 15px);
+  height: calc(100% - 10px);
+  margin: 5px;
+}
+
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.base-query {
+  width: 100%;
+  border: solid 1px #ccc !important;
+  min-height: 60px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  cursor: default !important;
+}
+
+.symbol-financials-container {
+  display: flex;
+  gap: 5px;
+  margin: 5px 5px 0 0;
+}
+
+.string-operator {
+  width: 70px;
+}
+
+.number-operator {
+  width: 70px;
+}
+
+.term-operator {
+  width: 100px;
+}
+
+.operator {
+  font-size: 12px;
+}
+
+.number-value {
+  text-align: right;
+}
+
+.form-field {
+  width: 100%;
+}
+
+.query-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 10px 25px 0 0;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.query-list {
+  border: solid 1px #ccc;
+  min-height: 60px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  display: block;
+}
+
+.query-item {
+  display: flex;
+  flex: 1 0 auto;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow:
+    0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.query-item:last-child {
+  border: none;
+}
+
+.query-list.cdk-drop-list-dragging .query-item:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+::ng-deep .mat-mdc-form-field-bottom-align::before {
+  display: unset;
+}

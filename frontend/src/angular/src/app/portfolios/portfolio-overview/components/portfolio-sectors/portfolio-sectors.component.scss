@@ -1,0 +1,133 @@
+/**
+ *    Copyright 2019 Sven Loesekann
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+@use "@angular/material" as mat;
+
+.hide-me {
+  visibility: hidden;
+  height: 0;
+  width: 0;
+}
+
+.my-content {
+  $my-theme-red: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$red-palette,
+      ),
+    )
+  );
+  $my-theme-purple: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$violet-palette,
+      ),
+    )
+  );
+  $my-theme-blue: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$blue-palette,
+      ),
+    )
+  );
+  $my-theme-cyan: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$cyan-palette,
+      ),
+    )
+  );
+  $my-theme-green: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$green-palette,
+      ),
+    )
+  );
+  $my-theme-yellow: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$yellow-palette,
+      ),
+    )
+  );
+  $my-theme-orange: mat.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$orange-palette,
+      ),
+    )
+  );
+  $red: mat.get-theme-color($my-theme-red, primary, 70);
+  $purple: mat.get-theme-color($my-theme-purple, primary, 70);
+  $blue: mat.get-theme-color($my-theme-blue, primary, 70);
+  $cyan: mat.get-theme-color($my-theme-cyan, primary, 70);
+  $green: mat.get-theme-color($my-theme-green, primary, 70);
+  $lime: mat.get-theme-color($my-theme-yellow, primary, 70);
+  $orange: mat.get-theme-color($my-theme-orange, primary, 70);
+  $gray: mat.get-theme-color($my-theme-blue, neutral, 70);
+  //@debug "#{$red},#{$purple},#{$blue},#{$cyan},#{$green},#{$lime},#{$orange},#{$gray}";
+  &::before {
+    content: "#{$red},#{$purple},#{$blue},#{$cyan},#{$green},#{$lime},#{$orange},#{$gray}";
+  }
+}
+
+.center-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100% - 94px);
+}
+
+.my-container {
+  background: #ffffff;
+  height: 100%;
+  width: 100%;
+}
+
+.my-header {
+  text-align: center;
+  margin: 0;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.chart-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.my-span {
+  display: inline-block;
+  width: 200px;
+}
+
+.my-icon {
+  line-height: initial;
+}
+
+.chart-legend {
+  width: 350px;
+}
+
+.donut-chart {
+  width: calc(100% - 350px);
+}

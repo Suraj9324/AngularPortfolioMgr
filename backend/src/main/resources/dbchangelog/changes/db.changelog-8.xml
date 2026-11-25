@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2019 Sven Loesekann Licensed under the Apache License, Version 
+	2.0 (the "License"); you may not use this file except in compliance with 
+	the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+	<changeSet id="41" author="angular2guy">
+		<addColumn tableName="portfolio">
+			<column name="year1sigma_sp500" type="double" />
+			<column name="year1sigma_msci_china" type="double" />
+			<column name="year1sigma_euro_stoxx50" type="double" />
+			<column name="year2sigma_sp500" type="double" />
+			<column name="year2sigma_msci_china" type="double" />
+			<column name="year2sigma_euro_stoxx50" type="double" />
+			<column name="year5sigma_sp500" type="double" />
+			<column name="year5sigma_msci_china" type="double" />
+			<column name="year5sigma_euro_stoxx50" type="double" />
+			<column name="year10sigma_sp500" type="double" />
+			<column name="year10sigma_msci_china" type="double" />
+			<column name="year10sigma_euro_stoxx50" type="double" />
+		</addColumn>
+	</changeSet>
+	<changeSet id="42" author="angular2guy">
+		<addColumn tableName="portfolio">
+			<column name="year1sigma_portfolio" type="double" />
+			<column name="year2sigma_portfolio" type="double" />
+			<column name="year5sigma_portfolio" type="double" />
+			<column name="year10sigma_portfolio" type="double" />
+		</addColumn>
+	</changeSet>
+	<changeSet id="43" author="angular2guy">
+		<dropTable tableName="intra_day_quote" />
+	</changeSet>
+	<changeSet id="44" author="angular2guy">
+		<addColumn tableName="daily_quote">
+			<column name="split" type="numeric(6,5)" />
+			<column name="dividend" type="numeric(6,5)" />
+		</addColumn>
+		<update tableName="daily_quote">
+			<column name="split" value="0" />
+			<column name="dividend" value="0" />
+		</update>
+	</changeSet>
+	<changeSet id="45" author="angular2guy">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="event_publication" />
+			</not>
+		</preConditions>
+		<createTable tableName="event_publication">
+			<column name="id" type="uuid">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="completion_date" type="datetime"></column>
+			<column name="event_type" type="varchar(4096)"></column>
+			<column name="listener_id" type="varchar(4096)"></column>
+			<column name="publication_date" type="datetime"></column>
+			<column name="serialized_event" type="varchar(32767)"></column>
+		</createTable>
+	</changeSet>
+	<changeSet id="46" author="angular2guy">
+		<preConditions>
+			<tableExists tableName="symbol" />			
+		</preConditions>
+		<addColumn tableName="symbol">			
+			<column name="cik" type="varchar(10)" />
+		</addColumn>	
+	</changeSet>
+	<changeSet id="47" author="angular2guy">
+		<preConditions>
+			<not>
+				<tableExists tableName="company_report" />			
+			</not>
+		</preConditions>
+		<createTable tableName="company_report">
+			<column name="id" type="bigint">
+				<constraints primaryKey="true" />
+			</column>
+		<column name="report_type" type="varchar(10)"></column>
+		<column name="report_date" type="datetime"></column>
+		<column name="report_url" type="varchar(4096)"></column>
+		<column name="report_blob" type="blob"></column>
+		<column name="symbol_id" type="bigint"></column>
+		</createTable>
+		</changeSet>
+	<changeSet id="48" author="angular2guy">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="company_report"
+					indexName="ix_company_report_symbol" />
+			</not>
+		</preConditions>
+		<createIndex indexName="ix_company_report_symbol"
+			tableName="company_report">
+			<column name="symbol_id" />
+		</createIndex>
+	</changeSet>
+    <changeSet id="49" author="angular2guy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="event_publication" columnName="completion_attempts" />
+            </not>
+        </preConditions>
+        <addColumn tableName="event_publication">
+            <column type="bigint" name="completion_attempts" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="50" author="angular2guy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="event_publication" columnName="last_resubmission_date" />
+            </not>
+        </preConditions>
+        <addColumn tableName="event_publication">
+            <column type="timestamp" name="last_resubmission_date" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="51" author="angular2guy">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="event_publication" columnName="status" />
+            </not>
+        </preConditions>
+        <addColumn tableName="event_publication">
+            <column type="varchar(20)" name="status" />
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
